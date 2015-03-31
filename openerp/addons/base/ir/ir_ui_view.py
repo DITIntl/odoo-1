@@ -444,6 +444,10 @@ class view(osv.osv):
                 continue
             if spec.attrib.get('expr')=='//link[last()]':  # attrib : {'expr': '//link[last()]', 'position': 'after'}
                 print '-'*80
+                print etree.tostring(spec)
+                print '#'*80
+                print etree.tostring(source)
+                print '-'*80
                 # for att in [att for att in dir(spec) if not "__" in att]: print att,":", repr( getattr(spec, att) )
                 # for att in [att for att in dir(source) if not "__" in att]: print att,":", repr( getattr(source, att) )
                 # import pdb; pdb.set_trace()
