@@ -32,6 +32,7 @@ from openerp import tools
 from openerp.tools import float_compare, DEFAULT_SERVER_DATETIME_FORMAT
 import openerp.addons.decimal_precision as dp
 import logging
+from openerp import SUPERUSER_ID
 _logger = logging.getLogger(__name__)
 
 #----------------------------------------------------------
@@ -881,7 +882,7 @@ class stock_picking(osv.osv):
     #
     def action_done(self, cr, uid, ids, context=None):
         """Changes picking state to done.
-        
+
         This method is called at the end of the workflow by the activity "done".
         @return: True
         """
@@ -896,10 +897,10 @@ class stock_picking(osv.osv):
 
     def action_move(self, cr, uid, ids, context=None):
         """Process the Stock Moves of the Picking
-        
+
         This method is called by the workflow by the activity "move".
-        Normally that happens when the signal button_done is received (button 
-        "Done" pressed on a Picking view). 
+        Normally that happens when the signal button_done is received (button
+        "Done" pressed on a Picking view).
         @return: True
         """
         for pick in self.browse(cr, uid, ids, context=context):
@@ -1282,7 +1283,7 @@ class stock_picking(osv.osv):
                 product_qty = move_product_qty[move.id]
                 if not new_picking and not empty_picking:
                     new_picking_name = pick.name
-                    self.write(cr, uid, [pick.id], 
+                    self.write(cr, uid, [pick.id],
                                {'name': sequence_obj.get(cr, uid,
                                             'stock.picking.%s'%(pick.type)),
                                })
@@ -1357,7 +1358,7 @@ class stock_picking(osv.osv):
             res[pick.id] = {'delivered_picking': delivered_pack.id or False}
 
         return res
-    
+
     # views associated to each picking type
     _VIEW_LIST = {
         'out': 'view_picking_out_form',
@@ -1366,12 +1367,12 @@ class stock_picking(osv.osv):
     }
     def _get_view_id(self, cr, uid, type):
         """Get the view id suiting the given type
-        
+
         @param type: the picking type as a string
         @return: view i, or False if no view found
         """
-        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-            'stock', self._VIEW_LIST.get(type, 'view_picking_form'))            
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid,
+            'stock', self._VIEW_LIST.get(type, 'view_picking_form'))
         return res and res[1] or False
 
 
@@ -1852,8 +1853,8 @@ class stock_move(osv.osv):
 
         product_obj = self.pool.get('product.product')
         uos_coeff = product_obj.read(cr, uid, product_id, ['uos_coeff'])
-        
-        # Warn if the quantity was decreased 
+
+        # Warn if the quantity was decreased
         if ids:
             for move in self.read(cr, uid, ids, ['product_qty']):
                 if product_qty < move['product_qty']:
