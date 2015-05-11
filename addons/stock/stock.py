@@ -2359,7 +2359,7 @@ class stock_move(osv.osv):
                     new_std_price = ((amount_unit * product_avail[product.id])\
                         + (new_price * qty))/(product_avail[product.id] + qty)
 
-                product_obj.write(cr, uid, [product.id],{'standard_price': new_std_price})
+                product_obj.write(cr, SUPERUSER_ID, [product.id],{'standard_price': new_std_price})
 
                 product_avail[product.id] += qty
 
