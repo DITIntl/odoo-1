@@ -151,6 +151,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             model:  'product.uom',
             fields: [],
             domain: null,
+            context: function(self){ return { active_test: false }; },
             loaded: function(self,units){
                 self.units = units;
                 var units_by_id = {};
@@ -872,7 +873,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                         data = {amount:tmp, price_include:true, id: tax.id};
                         res.push(data);
                     } else if (tax.type === "fixed") {
-                        tmp = round_pr(tax.amount * self.get_quantity(),currency_rounding);
+                        tmp = tax.amount * self.get_quantity();
                         data = {amount:tmp, price_include:true, id: tax.id};
                         res.push(data);
                     } else {
@@ -884,7 +885,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                         data = {amount:tmp, price_include:false, id: tax.id};
                         res.push(data);
                     } else if (tax.type === "fixed") {
-                        tmp = round_pr(tax.amount * self.get_quantity(), currency_rounding);
+                        tmp = tax.amount * self.get_quantity();
                         data = {amount:tmp, price_include:false, id: tax.id};
                         res.push(data);
                     } else {
@@ -1059,6 +1060,10 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             this.selectLine(this.getLastOrderline());
         },
         addProduct: function(product, options){
+            if(this._printed){
+                this.destroy();
+                return this.pos.get('selectedOrder').addProduct(product, options);
+            }
             options = options || {};
             var attr = JSON.parse(JSON.stringify(product));
             attr.pos = this.pos;
