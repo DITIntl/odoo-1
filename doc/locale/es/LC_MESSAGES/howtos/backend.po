@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: odoo 9.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-02-22 23:10-0600\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2016-02-23 11:13-0600\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -153,12 +153,17 @@ msgid ""
 "``__init__.py`` file, containing import instructions for various Python "
 "files in the module."
 msgstr ""
+"Un módulo es también un `paquete de Python <http://docs.python.org/2/tutorial/"
+"modules.html#packages>`_ con un archivo  ``__init__.py``, que contiene "
+"instrucciones de importación de varios archivos de Python en dicho módulo."
 
 #: ../../howtos/backend.rst:88
 msgid ""
 "For instance, if the module has a single ``mymodule.py`` file "
 "``__init__.py`` might contain::"
 msgstr ""
+"Por ejemplo, un módulo puede contener sol un archivo ``mymodule.py`` y "
+"``__init__.py``::"
 
 #: ../../howtos/backend.rst:93
 msgid ""
@@ -174,32 +179,38 @@ msgid ""
 "contain commented code or XML. The usage of most of those files will be "
 "explained along this tutorial."
 msgstr ""
+"El comando crea un subdirectorio para un módulo y automáticamente crea un "
+"montón de archivos estándar para dicho módulo. La mayoría de ellos contienen "
+"sólo código comentado o XML. A lo largo de este tutorial se explicará el uso de "
+"la mayoría de estos archivos."
 
 #: ../../howtos/backend.rst:105
 msgid "Module creation"
-msgstr ""
+msgstr "Construcción de un módulo"
 
 #: ../../howtos/backend.rst:107
 msgid ""
 "Use the command line above to  create an empty module Open Academy, and "
 "install it in Odoo."
 msgstr ""
+"Utilizar la línea de comandos anterior para crear un módulo vacío Open Academy "
+"e instalarlo en Odoo."
 
 #: ../../howtos/backend.rst:112
 msgid "Invoke the command ``odoo.py scaffold openacademy addons``."
-msgstr ""
+msgstr "Ejecuta el comando ``odoo.py scaffold openacademy addons``."
 
 #: ../../howtos/backend.rst:113
 msgid "Adapt the manifest file to your module."
-msgstr ""
+msgstr "Adaptar el archivo de manifiesto para su módulo."
 
 #: ../../howtos/backend.rst:114
 msgid "Don't bother about the other files."
-msgstr ""
+msgstr "No te preocupes de los otros archivos."
 
 #: ../../howtos/backend.rst:119
 msgid "Object-Relational Mapping"
-msgstr ""
+msgstr "Mapeo objeto-relacional (ORM)"
 
 #: ../../howtos/backend.rst:121
 msgid ""
@@ -215,6 +226,9 @@ msgid ""
 ":class:`~openerp.models.Model` which integrates them into the automated "
 "persistence system."
 msgstr ""
+"Los objetos de negocio se declaran como clases de Python que  extienden :class:"
+"`~openerp.models.Model` que los integra en el sistema automatizado de "
+"persistencia."
 
 #: ../../howtos/backend.rst:129
 msgid ""
@@ -224,10 +238,14 @@ msgid ""
 "name for the model in the Odoo system. Here is a minimally complete "
 "definition of a model::"
 msgstr ""
+"Los modelos pueden configurarse mediante el establecimiento de una serie de "
+"atributos en su definición. El atributo más importante es :attr:`~openerp."
+"models.Model._name` el cual es requerido y define el nombre del modelo en Odoo. "
+"Aquí está una definición mínima de un modelo::"
 
 #: ../../howtos/backend.rst:140
 msgid "Model fields"
-msgstr ""
+msgstr "Campos en el Modelo"
 
 #: ../../howtos/backend.rst:142
 msgid ""
