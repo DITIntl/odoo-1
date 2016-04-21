@@ -55,10 +55,10 @@
                         </tr>
                         <tr>
                             <td colspan="3"></td>
-                            <td><strong>Sub-Total :</strong></td>
-                            <td class="text-right"><span t-esc="Totals[o.id][currency]['due']" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/></td>
-                            <td class="text-right"><span t-esc="Totals[o.id][currency]['paid']" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/></td>
-                            <td class="text-right"><span t-esc="Totals[o.id][currency]['mat']" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/></td>
+                            <td><strong>Subtotal :</strong></td>
+                            <td class="text-right"><span t-esc="format(Totals[o.id][currency]['due'], 'monetary', currency)"/></td>
+                            <td class="text-right"><span t-esc="format(Totals[o.id][currency]['paid'], 'monetary', currency)"/></td>
+                            <td class="text-right"><span t-esc="format(Totals[o.id][currency]['mat'], 'monetary', currency)"/></td>
                             <td></td>
                         </tr>
                         <tr>
