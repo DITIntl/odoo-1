@@ -37,6 +37,8 @@ from openerp.tools.translate import _
 from openerp.tools import html2text
 import openerp.tools as tools
 
+import base64
+
 # ustr was originally from tools.misc.
 # it is moved to loglevels until we refactor tools.
 from openerp.loglevels import ustr
@@ -126,7 +128,7 @@ address_pattern = re.compile(r'([^ ,<@]+@[^> ,]+)')
 
 def extract_rfc2822_addresses(text):
     """Returns a list of valid RFC2822 addresses
-       that can be found in ``source``, ignoring 
+       that can be found in ``source``, ignoring
        malformed ones and non-ASCII ones.
     """
     if not text: return []
@@ -218,7 +220,7 @@ class ir_mail_server(osv.osv):
         """Returns a new SMTP connection to the give SMTP server, authenticated
            with ``user`` and ``password`` if provided, and encrypted as requested
            by the ``encryption`` parameter.
-        
+
            :param host: host or IP of SMTP server to connect to
            :param int port: SMTP port to connect to
            :param user: optional username to authenticate with
@@ -252,7 +254,7 @@ class ir_mail_server(osv.osv):
             # certain hashing schemes, like HMAC.
             # See also bug #597143 and python issue #5285
             user = tools.ustr(user).encode('utf-8')
-            password = tools.ustr(password).encode('utf-8') 
+            password = tools.ustr(password).encode('utf-8')
             connection.login(user, password)
         return connection
 
@@ -262,7 +264,7 @@ class ir_mail_server(osv.osv):
         """Constructs an RFC2822 email.message.Message object based on the keyword arguments passed, and returns it.
 
            :param string email_from: sender email address
-           :param list email_to: list of recipient addresses (to be joined with commas) 
+           :param list email_to: list of recipient addresses (to be joined with commas)
            :param string subject: email subject (no pre-encoding/quoting necessary)
            :param string body: email body, of the type ``subtype`` (by default, plaintext).
                                If html subtype is used, the message will be automatically converted
@@ -287,6 +289,34 @@ class ir_mail_server(osv.osv):
            :rtype: email.message.Message (usually MIMEMultipart)
            :return: the new RFC2822 email message
         """
+        ftemplate = '__image-%s__'
+        fcounter = 0
+        attachments = attachments or []
+
+        pattern = re.compile(r'"data:image/png;base64,[^"]*"')
+        pos = 0
+        new_body = ''
+        while True:
+            match = pattern.search(body, pos)
+            if not match:
+                break
+            s = match.start()
+            e = match.end()
+            data = body[s+len('"data:image/png;base64,'):e-1]
+            new_body += body[pos:s]
+
+            fname = ftemplate % fcounter
+            fcounter += 1
+            attachments.append( (fname, base64.b64decode(data)) )
+
+            new_body += '"cid:%s"' % fname
+            pos = e
+
+        new_body += body[pos:]
+        body = new_body
+
+
+
         email_from = email_from or tools.config.get('email_from')
         assert email_from, "You must either provide a sender address explicitly or configure "\
                            "a global sender address in the server configuration or with the "\
@@ -357,6 +387,7 @@ class ir_mail_server(osv.osv):
                 # so we fix it by using RFC2047 encoding for the filename instead.
                 part.set_param('name', filename_rfc2047)
                 part.add_header('Content-Disposition', 'attachment', filename=filename_rfc2047)
+                part.add_header('Content-ID', '<%s>' % filename_rfc2047) # NEW STUFF
 
                 part.set_payload(fcontent)
                 Encoders.encode_base64(part)
@@ -431,7 +462,7 @@ class ir_mail_server(osv.osv):
         email_to = message['To']
         email_cc = message['Cc']
         email_bcc = message['Bcc']
-        
+
         smtp_to_list = filter(None, tools.flatten(map(extract_rfc2822_addresses,[email_to, email_cc, email_bcc])))
         assert smtp_to_list, self.NO_VALID_RECIPIENT
 
