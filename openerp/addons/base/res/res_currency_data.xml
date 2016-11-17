@@ -1974,6 +1974,7 @@
             <field name="symbol">S/.</field>
             <field name="rounding">0.01</field>
             <field name="accuracy">4</field>
+            <field name="position">before</field>
         </record>
         <record forcecreate="0" id="ratePEN" model="res.currency.rate">
             <field name="currency_id" ref="PEN" />
