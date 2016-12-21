@@ -110,6 +110,8 @@
                             <field name="client_order_ref"/>
                             <field domain="[('type','=','sale')]" name="pricelist_id" groups="product.group_sale_pricelist" on_change="onchange_pricelist_id(pricelist_id,order_line)"/>
                             <field name="currency_id" invisible="1"/>
+                            <field name="model_external"/>
+                            <field name="id_external"/>
                         </group>
                     </group>
                     <notebook>
@@ -521,7 +523,7 @@
             <field name="groups_id" eval="[(4, ref('base.group_sale_salesman'))]"/>
             <field name="arch" type="xml">
                 <xpath expr="//div[@name='buttons']" position="inside">
-                    <button class="oe_inline oe_stat_button" name="action_view_sales" 
+                    <button class="oe_inline oe_stat_button" name="action_view_sales"
                         type="object" icon="fa-strikethrough">
                         <field string="Sales" name="sales_count" widget="statinfo" />
                     </button>

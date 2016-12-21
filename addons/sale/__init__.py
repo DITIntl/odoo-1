@@ -26,3 +26,5 @@ import wizard
 import report
 import edi
 import res_config
+
+import parser
