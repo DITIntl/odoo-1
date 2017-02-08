@@ -3,14 +3,16 @@
 
 import time
 
-from openerp.osv import fields, osv
+from odoo import fields, models
 from openerp.tools.translate import _
 from openerp.exceptions import UserError
 
-class hr_timesheet_invoice_factor(osv.osv):
+class hr_timesheet_invoice_factor(models.Model):
+
     _name = "hr_timesheet_invoice.factor"
     _description = "Invoice Rate"
     _order = 'factor'
+
     _columns = {
         'name': fields.char('Internal Name', required=True, translate=True),
         'customer_name': fields.char('Name', help="Label for the customer"),
@@ -21,7 +23,7 @@ class hr_timesheet_invoice_factor(osv.osv):
     }
 
 
-class account_analytic_account(osv.osv):
+class account_analytic_account(models.Model):
     _inherit = "account.analytic.account"
     _columns = {
         'pricelist_id': fields.many2one('product.pricelist', 'Pricelist',
@@ -59,7 +61,7 @@ class account_analytic_account(osv.osv):
         return self.write(cr, uid, ids, {'state': 'pending'}, context=context)
 
 
-class account_analytic_line(osv.osv):
+class account_analytic_line(models.Model):
     _inherit = 'account.analytic.line'
     _columns = {
         'invoice_id': fields.many2one('account.invoice', 'Invoice', ondelete="set null", copy=False),
@@ -311,7 +313,7 @@ class account_analytic_line(osv.osv):
         return res
 
 
-class account_invoice(osv.osv):
+class account_invoice(models.Model):
     _inherit = "account.invoice"
 
     def _get_analytic_lines(self, cr, uid, ids, context=None):
@@ -329,7 +331,7 @@ class account_invoice(osv.osv):
         return iml
 
 
-class account_move_line(osv.osv):
+class account_move_line(models.Model):
     _inherit = "account.move.line"
 
     def create_analytic_lines(self, cr, uid, ids, context=None):
