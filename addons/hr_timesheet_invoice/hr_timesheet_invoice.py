@@ -7,40 +7,49 @@ from odoo import fields, models
 from openerp.tools.translate import _
 from openerp.exceptions import UserError
 
-class hr_timesheet_invoice_factor(models.Model):
+class HrTimesheetInvoiceFactor(models.Model):
 
     _name = "hr_timesheet_invoice.factor"
     _description = "Invoice Rate"
     _order = 'factor'
 
-    _columns = {
-        'name': fields.char('Internal Name', required=True, translate=True),
-        'customer_name': fields.char('Name', help="Label for the customer"),
-        'factor': fields.float('Discount (%)', required=True, help="Discount in percentage"),
-    }
-    _defaults = {
-        'factor': lambda *a: 0.0,
-    }
+    name = fields.Char('Internal Name', required=True, translate=True)
+    customer_name = fields.Char('Name', help="Label for the customer")
+    factor = fields.Float(
+        'Discount (%)', required=True,
+        default=0.0,
+        help="Discount in percentage")
 
 
-class account_analytic_account(models.Model):
+class AccountAnalyticAccount(models.Model):
+
     _inherit = "account.analytic.account"
-    _columns = {
-        'pricelist_id': fields.many2one('product.pricelist', 'Pricelist',
-            help="The product to invoice is defined on the employee form, the price will be deducted by this pricelist on the product."),
-        'amount_max': fields.float('Max. Invoice Price',
-            help="Keep empty if this contract is not limited to a total fixed price."),
-        'to_invoice': fields.many2one('hr_timesheet_invoice.factor', 'Timesheet Invoicing Ratio',
-            help="You usually invoice 100% of the timesheets. But if you mix fixed price and timesheet invoicing, you may use another ratio. For instance, if you do a 20% advance invoice (fixed price, based on a sales order), you should invoice the rest on timesheet with a 80% ratio."),
-    }
 
-    _defaults = {
-         'pricelist_id': lambda self, cr, uid, c: self.pool['ir.model.data'].xmlid_to_res_id(cr, uid, 'product.list0'),
-         'to_invoice': lambda self, cr, uid, c: self.pool['ir.model.data'].xmlid_to_res_id(cr, uid, 'hr_timesheet_invoice.timesheet_invoice_factor1')
-    }
+    # TODO review that this default is working
+    pricelist_id = fields.Many2one(
+        'product.pricelist', 'Pricelist',
+        default=lambda self: self.env['ir.model.data'].xmlid_to_res_id(
+            'product.list0'),
+        help="The product to invoice is defined on the employee form, the"
+        " price will be deducted by this pricelist on the product.")
+    amount_max = fields.Float(
+        'Max. Invoice Price',
+        help="Keep empty if this contract is not limited to a total fixed"
+        " price.")
+    to_invoice = fields.Many2one(
+        'hr_timesheet_invoice.factor',
+        'Timesheet Invoicing Ratio',
+        default=self: self.env['ir.model.data'].xmlid_to_res_id(
+            'hr_timesheet_invoice.timesheet_invoice_factor1'),
+        help="You usually invoice 100% of the timesheets. But if you mix"
+        " fixed price and timesheet invoicing, you may use another ratio."
+        " For instance, if you do a 20% advance invoice (fixed price, based"
+        " on a sales order), you should invoice the rest on timesheet with"
+        " a 80% ratio."),
 
+    # TODO take care of this onchange.
     def on_change_partner_id(self, cr, uid, ids, partner_id, name, context=None):
-        res = super(account_analytic_account, self).on_change_partner_id(cr, uid, ids, partner_id, name, context=context)
+        res = super(AccountAnalyticAccount, self).on_change_partner_id(cr, uid, ids, partner_id, name, context=context)
         if partner_id:
             part = self.pool.get('res.partner').browse(cr, uid, partner_id, context=context)
             pricelist = part.property_product_pricelist and part.property_product_pricelist.id or False
@@ -48,80 +57,103 @@ class account_analytic_account(models.Model):
                 res['value']['pricelist_id'] = pricelist
         return res
 
-    def set_close(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids, {'state': 'close'}, context=context)
+    @api.multi
+    def set_close(self):
+        return self.write({'state': 'close'})
 
-    def set_cancel(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids, {'state': 'cancelled'}, context=context)
+    @api.multi
+    def set_cancel(self):
+        return self.write({'state': 'cancelled'})
 
-    def set_open(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids, {'state': 'open'}, context=context)
+    @api.multi
+    def set_open(self):
+        return self.write({'state': 'open'})
 
-    def set_pending(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids, {'state': 'pending'}, context=context)
+    @api.multi
+    def set_pending(self):
+        return self.write({'state': 'pending'})
 
 
-class account_analytic_line(models.Model):
+class AccountAnalyticLine(models.Model):
+
     _inherit = 'account.analytic.line'
-    _columns = {
-        'invoice_id': fields.many2one('account.invoice', 'Invoice', ondelete="set null", copy=False),
-        'to_invoice': fields.many2one('hr_timesheet_invoice.factor', 'Invoiceable', help="It allows to set the discount while making invoice, keep empty if the activities should not be invoiced."),
-    }
 
-    def _default_general_account(self, cr, uid, context=None):
-        proxy = self.pool.get('hr.employee')
-        record_ids = proxy.search(cr, uid, [('user_id', '=', uid)], context=context)
+    general_account_id = fields.Many2one(default=_default_general_account)
+    # TODO review if the general_account_id is really a many2one field
+
+    @api.model
+    def _default_general_account(self):
+        proxy = self.env('hr.employee')
+        uid = self.env.user.id
+        # TODO review that is is working properly
+        record_ids = proxy.search([('user_id', '=', uid)])
         if record_ids:
-            employee = proxy.browse(cr, uid, record_ids[0], context=context)
-            if employee.product_id and employee.product_id.property_account_income_id:
+            employee = proxy.browse(record_ids[0])
+            # TODO I think this line is not necessary
+            if (employee.product_id and
+                    employee.product_id.property_account_income_id):
                 return employee.product_id.property_account_income_id.id
         return False
+
+    invoice_id = fields.Many2one(
+        'account.invoice', 'Invoice', ondelete="set null", copy=False)
+    to_invoice = fields.Many2one(
+        'hr_timesheet_invoice.factor', 
+        'Invoiceable', 
+        help="It allows to set the discount while making invoice, keep"
+        " empty if the activities should not be invoiced.")
+
 
     _defaults = {
         'general_account_id': _default_general_account,
     }
 
-    def write(self, cr, uid, ids, vals, context=None):
-        self._check_inv(cr, uid, ids, vals)
-        return super(account_analytic_line, self).write(cr, uid, ids, vals,
-                context=context)
+    @api.multi
+    def write(self,vals):
+        self._check_inv(vals)
+        return super(AccountAnalyticLine, self).write(vals)
 
-    def unlink(self, cr, uid, ids, context=None):
-        if any(line.invoice_id.id for line in self.browse(cr, uid, ids, context)):
+    @api.multi
+    def unlink(self):
+        lines_with_invoices = self.mapped(["invoice_id"])
+        if lines_with_invoices:
             raise UserError(_('You cannot delete an invoiced analytic line!'))
-        return super(account_analytic_line, self).unlink(cr, uid, ids, context)
+        return super(AccountAnalyticLine, self).unlink()
 
-    def _check_inv(self, cr, uid, ids, vals, context=None):
-        select = ids
-        if isinstance(select, (int, long)):
-            select = [ids]
+    @api.multi
+    def _check_inv(self, vals):
         if (not vals.has_key('invoice_id')) or vals['invoice_id'] == False:
-            for line in self.browse(cr, uid, select, context):
+            for line in self:
                 if line.invoice_id:
-                    raise UserError(_('You cannot modify an invoiced analytic line!'))
+                    raise UserError(
+                        _('You cannot modify an invoiced analytic line!'))
         return True
 
-    def _get_invoice_price(self, cr, uid, account, product_id, user_id, qty, context={}):
-        pro_price_obj = self.pool.get('product.pricelist')
+    @api.multi
+    def _get_invoice_price(self, account, product_id, user_id, qty):
+        pro_price_obj = self.env['product.pricelist']
         if account.pricelist_id:
-            pl = account.pricelist_id.id
-            price = pro_price_obj.price_get(cr, uid, [pl], product_id, qty or 1.0, account.partner_id.id, context=context)[pl]
+            price = account.pricelist_id.price_get(
+                product_id, qty or 1.0, account.partner_id.id)[pl]
+            # TODO this need to be fixed. will return an error.
         else:
             price = 0.0
         return price
 
-    def _prepare_cost_invoice(self, cr, uid, partner, company_id, currency_id, analytic_line_ids, group_by_partner=False, context=None):
+    @api.multi
+    def _prepare_cost_invoice(self, partner, company_id, currency_id,
+                              analytic_line_ids, group_by_partner=False):
         """ returns values used to create main invoice from analytic lines"""
-        account_payment_term_obj = self.pool['account.payment.term']
+        account_payment_term_obj = self.env['account.payment.term']
         if group_by_partner:
             invoice_name = partner.name
         else:
             invoice_name = analytic_line_ids[0].account_id.name
         date_due = False
         if partner.property_payment_term_id:
-            pterm_list = account_payment_term_obj.compute(cr, uid,
-                    partner.property_payment_term_id.id, value=1,
-                    date_ref=time.strftime('%Y-%m-%d'))
+            pterm_list = account_payment_term_obj.compute(
+                partner.property_payment_term_id.id, value=1,
+                date_ref=time.strftime('%Y-%m-%d'))
             if pterm_list:
                 pterm_list = [line[0] for line in pterm_list]
                 pterm_list.sort()
@@ -137,11 +169,13 @@ class account_analytic_line(models.Model):
             'fiscal_position_id': partner.property_account_position_id.id
         }
 
-    def _prepare_cost_invoice_line(self, cr, uid, invoice_id, product_id, uom, user_id,
-                factor_id, account, analytic_line_ids, journal_type, data, context=None):
-        product_obj = self.pool['product.product']
+    @api.multi
+    def _prepare_cost_invoice_line(self, invoice_id, product_id, uom, user_id,
+                                   factor_id, account, analytic_line_ids,
+                                   journal_type, data):
+        product_obj = self.env['product.product']
 
-        uom_context = dict(context or {}, uom=uom)
+        uom_context = dict(self.env._context, uom=uom)
 
         total_price = sum(l.amount for l in analytic_line_ids)
         total_qty = sum(l.unit_amount for l in analytic_line_ids)
@@ -152,15 +186,18 @@ class account_analytic_line(models.Model):
                 product_id = data['product'][0]
             else:
                 product_id = data['product']
-            unit_price = self._get_invoice_price(cr, uid, account, product_id, user_id, total_qty, uom_context)
+            unit_price = self._get_invoice_price(
+                account, product_id, user_id, total_qty, uom_context)
         elif journal_type == 'general' and product_id:
             # timesheets, use sale price
-            unit_price = self._get_invoice_price(cr, uid, account, product_id, user_id, total_qty, uom_context)
+            unit_price = self._get_invoice_price(
+                account, product_id, user_id, total_qty, uom_context)
         else:
             # expenses, using price from amount field
             unit_price = total_price*-1.0 / total_qty
 
-        factor = self.pool['hr_timesheet_invoice.factor'].browse(cr, uid, factor_id, context=uom_context)
+        # TODO take care here
+        factor = self.env['hr_timesheet_invoice.factor'].browse(cr, uid, factor_id, context=uom_context)
         factor_name = factor.customer_name or ''
         curr_invoice_line = {
             'price_unit': unit_price,
