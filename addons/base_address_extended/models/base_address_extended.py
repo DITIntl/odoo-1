@@ -137,3 +137,25 @@ class Partner(models.Model):
             # /!\ Note that a write(vals) would cause a recursion since it would bypass the cache
             for k, v in vals.items():
                 partner[k] = v
+
+class Company(models.Model):
+    _inherit = 'res.company'
+
+    street_name = fields.Char('Street Name',
+                              compute='_compute_address_extended',
+                              inverse='_set_street_name', store=True)
+    street_number = fields.Char('House Number',
+                                compute='_compute_address_extended',
+                                inverse='_set_street_number', store=True)
+    street_number2 = fields.Char('Door Number',
+                                 compute='_compute_address_extended',
+                                 inverse='_set_street_number2', store=True)
+
+    def _compute_address_extended(self):
+        # TODO: Finish this method
+        pass
+
+    # TODO: Create methods '_set_street_*'
+    # Based on others fields shared between partner and company:
+    #    odoo/addons/base/res/res_company.py
+    # TODO: Add new fields to res.company view
