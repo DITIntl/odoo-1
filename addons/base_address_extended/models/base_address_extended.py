@@ -141,21 +141,6 @@ class Partner(models.Model):
 class Company(models.Model):
     _inherit = 'res.company'
 
-    street_name = fields.Char('Street Name',
-                              compute='_compute_address_extended',
-                              inverse='_set_street_name', store=True)
-    street_number = fields.Char('House Number',
-                                compute='_compute_address_extended',
-                                inverse='_set_street_number', store=True)
-    street_number2 = fields.Char('Door Number',
-                                 compute='_compute_address_extended',
-                                 inverse='_set_street_number2', store=True)
-
-    def _compute_address_extended(self):
-        # TODO: Finish this method
-        pass
-
-    # TODO: Create methods '_set_street_*'
-    # Based on others fields shared between partner and company:
-    #    odoo/addons/base/res/res_company.py
-    # TODO: Add new fields to res.company view
+    street_name = fields.Char(related='partner_id.street_name', store=True)
+    street_number = fields.Char(related='partner_id.street_number', store=True)
+    street_number2 = fields.Char(related='partner_id.street_number2', store=True)
