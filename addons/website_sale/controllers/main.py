@@ -478,10 +478,15 @@ class WebsiteSale(http.Controller):
 
         # vat validation
         Partner = request.env['res.partner']
-        if data.get("vat") and hasattr(Partner, "check_vat"):
-            check_func = request.website.company_id.vat_check_vies and Partner.vies_vat_check or Partner.simple_vat_check
-            vat_country, vat_number = Partner._split_vat(data.get("vat"))
-            if not check_func(vat_country, vat_number):
+        if (data.get("vat") and hasattr(Partner, "check_vat") and
+                data.get("country_id")):
+            partner_dummy = partner.new({
+                'vat': data.get('vat'),
+                'country_id': int(data.get('country_id')),
+            })
+            try:
+                partner_dummy.check_vat()
+            except ValidationError:
                 error["vat"] = 'error'
 
         if [err for err in error.values() if err == 'missing']:
