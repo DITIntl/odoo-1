@@ -497,6 +497,9 @@ def trans_export(lang, modules, buffer, format, cr):
                     row['translation'] = ''
                 elif not row.get('translation'):
                     row['translation'] = src
+                    comments = tuple(row.get('comments'))
+                    if comments and comments[0] == 'new':
+                        row['translation'] = ''
                 writer.write(row['modules'], row['tnrs'], src, row['translation'], row['comments'])
 
         elif format == 'tgz':
@@ -829,7 +832,7 @@ def trans_generate(lang, modules, cr):
             constraints = getattr(cls, '_local_' + cons_type, [])
             for constraint in constraints:
                 push_constraint_msg(module, term_type, model._name, constraint[msg_pos])
-            
+
     for (_, model, module) in cr.fetchall():
         if model not in registry:
             _logger.error("Unable to find object %r", model)
@@ -922,6 +925,10 @@ def trans_generate(lang, modules, cr):
     # translate strings marked as to be translated
     for module, source, name, id, type, comments in sorted(_to_translate):
         trans = '' if not lang else trans_obj._get_source(cr, uid, name, type, lang, source)
+        if trans is None:
+            comments = list(comments)
+            comments.append('new')
+            comments = tuple(comments)
         out.append((module, type, name, id, source, encode(trans) or '', comments))
     return out
 
