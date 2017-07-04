@@ -337,7 +337,7 @@ class ir_translation(osv.osv):
                         AND name=%s"""
 
             params = (lang or '', types, tools.ustr(name))
-        
+
         return (query, params)
 
     @tools.ormcache(skiparg=3)
@@ -348,7 +348,7 @@ class ir_translation(osv.osv):
         res = cr.fetchone()
         trad = res and res[0] or u''
         if source and not trad:
-            return tools.ustr(source)
+            return tools.ustr('')
         return trad
 
     def _get_source(self, cr, uid, name, types, lang, source=None, res_id=None):
