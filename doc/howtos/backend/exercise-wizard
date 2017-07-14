@@ -2,10 +2,9 @@ Index: addons/openacademy/__init__.py
 ===================================================================
 --- addons.orig/openacademy/__init__.py	2014-08-27 14:19:23.023111330 +0200
 +++ addons/openacademy/__init__.py	2014-08-27 14:22:25.043108628 +0200
-@@ -2,3 +2,4 @@
+@@ -2,2 +2,3 @@
  from . import controllers
  from . import models
- from . import partner
 +from . import wizard
 Index: addons/openacademy/wizard.py
 ===================================================================
