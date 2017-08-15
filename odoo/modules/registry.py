@@ -120,7 +120,7 @@ class Registry(Mapping):
         # special cursor for test mode; None means "normal" mode
         self.test_cr = None
 
-        # Indicates that the registry is 
+        # Indicates that the registry is
         self.ready = False
 
         # Inter-process signaling (used only when odoo.multi_process is True):
@@ -322,7 +322,11 @@ class Registry(Mapping):
             func(*args)
 
         if models:
-            models[0].recompute()
+            try:
+                with cr.savepoint():
+                    models[0].recompute()
+            except Exception as e:
+                _logger.warn("Unable to store the computed values. %s" % e.message)
         cr.commit()
 
         # make sure all tables are present
