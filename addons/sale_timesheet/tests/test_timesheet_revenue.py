@@ -76,6 +76,8 @@ class TestSaleTimesheet(TestSale):
             'email': 'partner.eur@test.com',
             'property_product_pricelist': self.pricelist_eur.id,
         })
+        self.env.ref('base.main_company').currency_id = self.env.ref(
+            'base.USD').id
 
     def test_revenue(self):
         """ Create a SO with 2 lines : one for a delivered service, one for a ordered service. Confirm
