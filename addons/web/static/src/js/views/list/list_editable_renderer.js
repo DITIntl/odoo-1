@@ -498,7 +498,7 @@ ListRenderer.include({
     _renderRow: function (record, index) {
         var $row = this._super.apply(this, arguments);
         if (this.addTrashIcon) {
-            var $icon = $('<span>', {class: 'fa fa-trash-o', name: 'delete'});
+            var $icon = $('<button>', {type: 'button', class: 'btn btn-xs btn-default fa fa-trash-o', name: 'delete', 'aria-label': 'Delete row'});
             var $td = $('<td>', {class: 'o_list_record_delete'}).append($icon);
             $row.append($td);
         }
